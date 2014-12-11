@@ -1,3 +1,4 @@
+
 define([
     'backbone',
     'marionette',
@@ -17,6 +18,9 @@ define([
     var app = new Marionette.Application(),
         router;
 
+    app.on("initialize:before", function(options) {
+        return this.vent = new Backbone.Wreqr.EventAggregator();
+    });
     app.addRegions({
         navRegion: '#header',
         mainRegion: '#content-area',
@@ -283,6 +287,53 @@ define([
         }
     });
 
+    var __hasProp = {}.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+    app.module("mapApp", function(mapApp, App, Backbone, Marionette, $, _) {
+      var API;
+      this.startWithParent = false;
+      mapApp.Router = (function(_super) {
+        __extends(Router, _super);
+
+        function Router() {
+          return Router.__super__.constructor.apply(this, arguments);
+        }
+
+        Router.prototype.appRoutes = {
+          "map/:q": "showMap"
+        };
+
+        return Router;
+
+      })(Marionette.AppRouter);
+      app.vent.on('show:map', function(q) {
+        return Backbone.history.navigate("backbone/map/" + q, {
+          trigger: true
+        });
+      });
+      API = {
+        showMap: function(q) {
+            console.log("inside the api");
+          return mapApp.Show.Controller.showMapView(q);
+        }
+      };
+      return App.addInitializer(function() {
+        return new mapApp.Router({
+          controller: API
+        });
+      });
+    });
+
+    app.module("mapApp.Show", function(Show, App, Backbone, Marionette, $, _) {
+      return Show.Controller = {
+        showMapView: function(q) {
+          return console.log("inside the controller and this is the q:", q);
+        }
+      };
+    });
+
+
     app.addInitializer(function(options) {
         app.getRegion('navRegion').show(new HeaderView());
         app.getRegion('footerRegion').show(new FooterView());
@@ -296,7 +347,7 @@ define([
     return {
         startModule: function(done) {
             app.start({});
+            app.module("mapApp").start();
         }
     };
 });
-
